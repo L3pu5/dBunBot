@@ -1,0 +1,9 @@
+Guides:
+https://discord.com/developers/docs/intro
+https://www.toptal.com/chatbot/how-to-make-a-discord-bot
+
+Sockets:
+https://discord.com/developers/docs/topics/gateway
+
+API:
+https://discord.com/developers/docs/reference
