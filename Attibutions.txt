@@ -7,3 +7,14 @@ https://discord.com/developers/docs/topics/gateway
 
 API:
 https://discord.com/developers/docs/reference
+
+WebRequests:
+https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest?view=net-6.0
+
+Gateway Connection:
+https://discord.com/developers/docs/topics/gateway#connecting-to-the-gateway
+
+C# JSON
+
+URI
+https://docs.microsoft.com/en-us/dotnet/api/system.uri?view=net-6.0
