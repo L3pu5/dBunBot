@@ -14,7 +14,23 @@ https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest?view=net-6
 Gateway Connection:
 https://discord.com/developers/docs/topics/gateway#connecting-to-the-gateway
 
+Gateway Intents:
+https://discord.com/developers/docs/topics/gateway#gateway-intents
+N.B.: do NOT use the intents/permissions generated from the discord bot on the app page.
+        it is a LIE.
+        use the table above. 
+
 C# JSON
+https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-how-to?pivots=dotnet-6-0
+N.B.: Json serialized attributes must be public and have a getter and setter
+ie: int op; will NOT serialize
+    int op {get; set;} will NOT serialize 
+    public int op {get; set;} WILL serialize
+
+    Polymorphic types
+    https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-polymorphism
+    For nested classes, probably best to define as an object (nullable) instead of the type for parsing.
+
 
 URI
 https://docs.microsoft.com/en-us/dotnet/api/system.uri?view=net-6.0

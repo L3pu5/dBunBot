@@ -4,7 +4,9 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 #Credentials
-Credentials.*
+Credentials.txt
+BotConfig.txt
+ExampleResponses.txt
 
 # User-specific files
 *.rsuser
