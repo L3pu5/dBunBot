@@ -6,6 +6,9 @@ using System.Collections.Generic;
 namespace DiscordConnection{
     class DiscordMessage{
         Dictionary<string, string> Data;
+
+
+        enum MessageType {GuildCreate}
         
         //Returns the value for a given _key from a parsed data.
         //Returns null if the DiscordMessage doesn't contain the key, -> todo: throw exception.

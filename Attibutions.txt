@@ -5,6 +5,10 @@ https://www.toptal.com/chatbot/how-to-make-a-discord-bot
 Sockets:
 https://discord.com/developers/docs/topics/gateway
 
+Inviting bot to server:
+https://discordapp.com/api/oauth2/authorize?scope=bot&client_id=<id>
+
+
 API:
 https://discord.com/developers/docs/reference
 

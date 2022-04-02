@@ -187,8 +187,11 @@ namespace DiscordConnection
                     }
                     Console.WriteLine($"The dispatch was read. We are in: {Guilds.Count - 1} guilds. Our session id is {SessionId}.");
                     break;
+    
             }
         }
+
+    
         
         public Connection(){
             readCredentials();
