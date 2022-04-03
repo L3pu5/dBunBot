@@ -46,7 +46,7 @@ namespace DiscordConnection
         
         //Session Variables
         public string SessionId;
-        public HashSet<string> Guilds;
+        public HashSet<Guild> Guilds = new HashSet<Guild>();
         int DispatchCount = 0;
 
         //Bot Credentials
@@ -103,7 +103,7 @@ namespace DiscordConnection
             //Connect to the Gateway
             Socket = new ClientWebSocket();
             Console.WriteLine("Sock: " + Socket.State);
-            await Socket.ConnectAsync(new Uri(API.MakeGateWayURL(_message.GetData("url"))), CancellationToken.None);
+            await Socket.ConnectAsync(new Uri(API.MakeGateWayURL((string) _message.GetData("url"))), CancellationToken.None);
             Console.WriteLine(Socket.State);
             //Start the Reading process - we exept an op 10 hello to arrive immediately;
             await Read();
@@ -123,9 +123,14 @@ namespace DiscordConnection
             if(Socket.CloseStatusDescription != "")
                 Console.WriteLine("Socket closed: " + Socket.CloseStatusDescription);
             Console.WriteLine(_jsonResponse);
-            DiscordMessage _message = new DiscordMessage(_jsonResponse);
+            try{
+                DiscordMessage _message = new DiscordMessage(_jsonResponse);
+                await HandleReceivedMessage(_message);
+            }
+            catch (Exception e){
+                Console.WriteLine(e.ToString() + "\n");
+            }
             //Handle the message.
-            await HandleReceivedMessage(_message);
             await Read();
         }
 
@@ -174,18 +179,22 @@ namespace DiscordConnection
                     await SendMessage(_identify);
                     break;
                 case GateWay.Opcode.Dispatch:
-                    if(DispatchCount > 0){
-                        return;
+                    switch(_message.GetTypeCode()){
+                        case DiscordMessage.MessageType.GuildCreate:
+                            Guilds.Add((Guild) _message.GetData("Guild"));
+                            Console.WriteLine("added a guild to the guilds!\n");
+                            break;
+                        case DiscordMessage.MessageType.READY:
+                            SessionId = (string) _message.GetData("sessionid");
+                            Console.WriteLine("Parsed SessionID!\n");
+                            break;
+                        default:
+
+                        break;
                     }
                     DispatchCount++;
-                    Console.WriteLine("Received Dispatch");
+                    //Console.WriteLine("Received Dispatch");
                     //read Data
-                    SessionId = _message.GetData("sessionid");
-                    Guilds = new HashSet<string>();
-                    foreach(string _guildId in _message.GetData("guilds").Split('&')){
-                        Guilds.Add(_guildId);
-                    }
-                    Console.WriteLine($"The dispatch was read. We are in: {Guilds.Count - 1} guilds. Our session id is {SessionId}.");
                     break;
     
             }

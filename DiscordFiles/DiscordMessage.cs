@@ -5,14 +5,19 @@ using System.Collections.Generic;
 
 namespace DiscordConnection{
     class DiscordMessage{
-        Dictionary<string, string> Data;
+        Dictionary<string, object> Data;
 
 
-        enum MessageType {GuildCreate}
-        
+        //This is defined by the "t" label in a discord message wss message;
+
+        public enum MessageType {Default, READY, GuildCreate}
+        MessageType TypeCode = MessageType.Default;
+        public MessageType GetTypeCode(){
+            return TypeCode;
+        }
         //Returns the value for a given _key from a parsed data.
         //Returns null if the DiscordMessage doesn't contain the key, -> todo: throw exception.
-        public string GetData(string _key)
+        public object GetData(string _key)
         {
             if(Data != null){
                 if(Data.ContainsKey(_key))
@@ -23,9 +28,9 @@ namespace DiscordConnection{
         }
 
         //Adds _value to the Data.
-        public void AddData(string _key, string _value){
+        public void AddData(string _key, object _value){
             if(Data == null)
-                Data = new Dictionary<string, string>();
+                Data = new Dictionary<string, object>();
             //Check later.
             Data[_key] = _value;
         }
@@ -137,7 +142,59 @@ namespace DiscordConnection{
                     case "op":
                         opCode = (GateWay.Opcode) _property.Value.GetInt32();
                         break;
+                    case "t":
+                        switch(_property.Value.GetString())
+                        {
+                            case "GUILD_CREATE":
+                                this.TypeCode = MessageType.GuildCreate;
+                                break;
+                            case "READY":
+                                this.TypeCode = MessageType.READY;
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
                     case "d":
+                        //If this is a GuildCreateMessage
+                        if(this.TypeCode == MessageType.GuildCreate){
+                            Guild _guild = new Guild();
+                            this.AddData("Guild", _guild);
+                            foreach(JsonProperty __property in _property.Value.EnumerateObject()){
+                                switch(__property.Name){
+                                    case "name":
+                                        _guild.SetName(__property.Value.GetString());
+                                        break;
+                                    case "afk_channel_id":
+                                        _guild.SetAfkChannelId(__property.Value.GetString());
+                                        break;
+                                    case "id":
+                                        _guild.SetId(__property.Value.GetString());
+                                        break;
+                                    case "channels":
+                                        foreach(JsonElement _channel in __property.Value.EnumerateArray()){
+                                            Channel _thisChannel = new Channel();
+                                            foreach(JsonProperty _channelProperty in _channel.EnumerateObject()){
+                                                switch(_channelProperty.Name){
+                                                    case "type":
+                                                        _thisChannel.SetType(_channelProperty.Value.GetInt32());
+                                                        break;
+                                                    case "name":
+                                                        _thisChannel.SetName(_channelProperty.Value.GetString());
+                                                        break;
+                                                    case "id":
+                                                        _thisChannel.SetID(_channelProperty.Value.GetString());
+                                                        break;
+                                                }
+                                            }
+                                            _guild.AddChannel(_thisChannel);
+                                        }
+                                        break;
+                                }
+                            }
+                            return;
+                        }
+
                         foreach(JsonProperty __property in _property.Value.EnumerateObject()){
                             switch (__property.Name){
                                 case "heartbeat_interval":
@@ -147,15 +204,15 @@ namespace DiscordConnection{
                                     AddData("sessionid", __property.Value.GetString());
                                     break;
                                 case "guilds":
-                                    string _guildsString = "";
+                                    HashSet<string> _guilds = new HashSet<string>();
                                     foreach(JsonElement _object in __property.Value.EnumerateArray()){
                                         foreach(JsonProperty _guildProperty in _object.EnumerateObject()){
                                             if(_guildProperty.Name == "id"){
-                                                _guildsString += _guildProperty.Value.GetString() + "&";
+                                                _guilds.Add(_guildProperty.Value.GetString());
                                             }
                                         }
                                     }
-                                    AddData("guilds", _guildsString);
+                                    AddData("guilds", _guilds);
                                     break;
                                 default:
                                     break;
