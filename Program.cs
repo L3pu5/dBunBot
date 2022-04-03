@@ -30,9 +30,9 @@ namespace dBunBot
                     Console.WriteLine(_connection.Socket.State);
                 }
 
-                if (s == "c")
+                if (s == "guilds")
                 {
-                    //DiscordMessage _test = _connection.MakeMessage();
+                    Console.WriteLine(_connection.PrintGuilds());
                 }
             }
         }

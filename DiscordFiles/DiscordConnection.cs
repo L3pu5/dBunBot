@@ -200,7 +200,19 @@ namespace DiscordConnection
             }
         }
 
-    
+        //Returns a String containing the .ToString() method of each guild: 
+        // 1 Guild per line.
+        public string PrintGuilds(){
+            if(Guilds.Count == 0){
+                return "No guilds are in this connection.";
+            }
+            
+            string _output = "";
+            foreach(Guild _guild in Guilds){
+                _output += _guild.ToString() + "\n";
+            }
+            return _output;
+        }
         
         public Connection(){
             readCredentials();

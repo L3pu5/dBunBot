@@ -4,13 +4,18 @@ using System;
 using System.Collections.Generic;
 
 namespace DiscordConnection{
+    //This class represents an object of a message sent from or to a discord endpoint.
+    //This class does not necessarily represent a chat message and should not be used
+    // for chat messages.
+    //For chat messages (which will be encapsulated within a DiscordMessage)
+    //Please use the ChatMessage class.
     class DiscordMessage{
         Dictionary<string, object> Data;
 
 
         //This is defined by the "t" label in a discord message wss message;
 
-        public enum MessageType {Default, READY, GuildCreate}
+        public enum MessageType {Default, READY, GuildCreate, Message}
         MessageType TypeCode = MessageType.Default;
         public MessageType GetTypeCode(){
             return TypeCode;
@@ -150,6 +155,9 @@ namespace DiscordConnection{
                                 break;
                             case "READY":
                                 this.TypeCode = MessageType.READY;
+                                break;
+                            case "MESSAGE_CREATE":
+                                this.TypeCode = MessageType.Message;
                                 break;
                             default:
                                 break;

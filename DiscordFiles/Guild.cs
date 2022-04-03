@@ -31,6 +31,14 @@ namespace DiscordConnection{
                 AfkChannel = _channel;
             }
         }
+
+        public override string ToString(){
+            string _channelStrings = "";
+            foreach(Channel _channel in Channels){
+                _channelStrings += _channel.ToString() + "\n";
+            }
+            return $"{this.Name}: " + _channelStrings;
+        }
     }
 
     enum ChannelType {Text, Voice=2, Container=4}
@@ -54,6 +62,11 @@ namespace DiscordConnection{
         double LastMessageId;
         public void SetLastMessageId(double _id){
             LastMessageId = _id;
+        }
+
+        public override string ToString()
+        {
+            return $"{this.Name} | {this.Id} ({this.Type.ToString()})";
         }
         //bool IsAfk = false;
     }
