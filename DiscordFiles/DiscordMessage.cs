@@ -3,13 +3,13 @@ using System.Text.Json.Serialization;
 using System;
 using System.Collections.Generic;
 
-namespace DiscordConnection{
+namespace BunDiscordInterface{
     //This class represents an object of a message sent from or to a discord endpoint.
     //This class does not necessarily represent a chat message and should not be used
     // for chat messages.
     //For chat messages (which will be encapsulated within a DiscordMessage)
     //Please use the ChatMessage class.
-    class DiscordMessage{
+     class DiscordMessage{
         Dictionary<string, object> Data;
 
 
@@ -67,6 +67,15 @@ namespace DiscordConnection{
             return plaintext;
         }
 
+        int Sequence = -1;
+        public int GetSequence(){
+            return Sequence;
+        }
+        public void SetSequence(int _sequence)
+        {
+            Sequence = _sequence;
+        }
+
         public string Build(){
             MessageTemplate _message = new MessageTemplate(this);
             switch (this.type)
@@ -77,10 +86,10 @@ namespace DiscordConnection{
                     _properties.device = _properties.browser;
                     _properties.os = configuration.GetOperatingSystem();
 
-                    _message.d = new MessageTemplate.IdentifyData() {token = credentials.GetToken(), intents = 519, properties = _properties};
+                    _message.d = new MessageTemplate.IdentifyData() {token = credentials.GetToken(), intents = credentials.GetPermissions(), properties = _properties};
                     break;
                 case MessageTemplateType.HeartBeat:
-                    _message.d = null;
+                    _message.d = Sequence;
                     break;
                 default:
                 break;
@@ -125,7 +134,7 @@ namespace DiscordConnection{
 
             public class HeartbeatData : Data
             {
-
+                public int data {get; set;}
             }
 
             public MessageTemplate(DiscordMessage _parent)
@@ -134,7 +143,14 @@ namespace DiscordConnection{
                 op = (int) _parent.opCode;
             }
         }
-        
+
+
+        //Refactor this code to use JsonElement.GetProperty("") to make it less ugly.
+        /// <summary>
+        /// Constructs a DiscordMessage from a Json input fed via the WebSocket.
+        /// This structor is for intenral use. Do not use this constructor.
+        /// </summary>
+        /// <param name="_inputText">String:  Json string</param>
         public DiscordMessage(string _inputText){
             plaintext = _inputText;
             JsonDocument _json = JsonSerializer.Deserialize<JsonDocument>(_inputText);
@@ -146,6 +162,10 @@ namespace DiscordConnection{
                         break;
                     case "op":
                         opCode = (GateWay.Opcode) _property.Value.GetInt32();
+                        break;
+                    case "s":
+                        if (_property.Value.GetRawText() != "null")
+                            Sequence = _property.Value.GetInt32();
                         break;
                     case "t":
                         switch(_property.Value.GetString())
@@ -164,6 +184,31 @@ namespace DiscordConnection{
                         }
                         break;
                     case "d":
+                        JsonElement _data = _property.Value;
+                        //If this is a MessageMessage
+                        if(this.TypeCode == MessageType.Message){
+                            JsonElement _author = _data.GetProperty("author");
+                            string _authorName = _author.GetProperty("username").GetString();
+                            string _id = _author.GetProperty("id").GetString();
+                            string _descriminator = _author.GetProperty("discriminator").GetString();
+                            User _AuthorUser = new User(_authorName, _descriminator, _id);
+                            string _content = _data.GetProperty("content").GetString();
+                            DateTime _timeStamp = _data.GetProperty("timestamp").GetDateTime();
+                            ChatMessage _chatMessage = new ChatMessage(_AuthorUser, _content, _timeStamp);
+                            Guild _guild = new Guild();
+                            string _guildId = _data.GetProperty("guild_id").GetString();
+                            string _channelId = _data.GetProperty("channel_id").GetString();
+                            _chatMessage.SetContext(_guildId, _channelId);
+                            AddData("ChatMessage", _chatMessage);
+                            return;
+                        }
+                        //If this is the Hello message
+                        if(opCode == GateWay.Opcode.Hello){
+                            int _heartbeatInterval = _data.GetProperty("heartbeat_interval").GetInt32();
+                            AddData("HeartBeatInterval", _heartbeatInterval);
+                            return;
+                        }
+
                         //If this is a GuildCreateMessage
                         if(this.TypeCode == MessageType.GuildCreate){
                             Guild _guild = new Guild();
@@ -203,27 +248,33 @@ namespace DiscordConnection{
                             return;
                         }
 
-                        foreach(JsonProperty __property in _property.Value.EnumerateObject()){
-                            switch (__property.Name){
-                                case "heartbeat_interval":
-                                    GateWay.HeartbeatInterval = __property.Value.GetInt32();
-                                    break;
-                                case "session_id":
-                                    AddData("sessionid", __property.Value.GetString());
-                                    break;
-                                case "guilds":
-                                    HashSet<string> _guilds = new HashSet<string>();
-                                    foreach(JsonElement _object in __property.Value.EnumerateArray()){
-                                        foreach(JsonProperty _guildProperty in _object.EnumerateObject()){
-                                            if(_guildProperty.Name == "id"){
-                                                _guilds.Add(_guildProperty.Value.GetString());
+                        if(opCode == GateWay.Opcode.HeartbeatAck){
+                            return;
+                        }
+
+                        {
+                            foreach(JsonProperty __property in _property.Value.EnumerateObject()){
+                                switch (__property.Name){
+                                    case "heartbeat_interval":
+                                        GateWay.HeartbeatInterval = __property.Value.GetInt32();
+                                        break;
+                                    case "session_id":
+                                        AddData("sessionid", __property.Value.GetString());
+                                        break;
+                                    case "guilds":
+                                        HashSet<string> _guilds = new HashSet<string>();
+                                        foreach(JsonElement _object in __property.Value.EnumerateArray()){
+                                            foreach(JsonProperty _guildProperty in _object.EnumerateObject()){
+                                                if(_guildProperty.Name == "id"){
+                                                    _guilds.Add(_guildProperty.Value.GetString());
+                                                }
                                             }
                                         }
-                                    }
-                                    AddData("guilds", _guilds);
-                                    break;
-                                default:
-                                    break;
+                                        AddData("guilds", _guilds);
+                                        break;
+                                    default:
+                                        break;
+                                }
                             }
                         }
                         break;

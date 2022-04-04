@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace DiscordConnection{
+namespace BunDiscordInterface{
     //Credentials
     class Configuration{
 

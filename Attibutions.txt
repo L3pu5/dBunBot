@@ -24,6 +24,12 @@ N.B.: do NOT use the intents/permissions generated from the discord bot on the a
         it is a LIE.
         use the table above. 
 
+N.B.: The Gateway ONLY handles live updates.
+      All other information requires accessing the API.
+
+HttpClient options tutorial:
+https://zetcode.com/csharp/httpclient/
+
 C# JSON
 https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-how-to?pivots=dotnet-6-0
 N.B.: Json serialized attributes must be public and have a getter and setter

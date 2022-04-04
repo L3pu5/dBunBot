@@ -1,7 +1,7 @@
 using System.IO;
 using System;
 
-namespace DiscordConnection{
+namespace BunDiscordInterface{
     //Credentials
     class Credentials{
         string AppId;
